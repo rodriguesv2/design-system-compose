@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.dimensa.mask.components.utils.transformations.MaskTransformation
 import br.com.dimensa.mask.ui.theme.MaskTheme
 
 class MainActivity : ComponentActivity() {
@@ -63,7 +64,7 @@ fun CustomTextField(
         label = {
             Text(text = "Campo de texto")
         },
-        visualTransformation = MaskTransformation(mask = "###.###.###-##"),
+        visualTransformation = MaskTransformation(mask = "(##) # ####-####"),
         modifier = modifier,
     )
 }
@@ -85,93 +86,6 @@ fun CustomTextFieldPreview() {
         ) {
             CustomTextField("", {})
         }
-    }
-}
-
-class MaskTransformation(
-    private val mask: String,
-    private val wildCardChar: Char = '#',
-) : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val maskTrimmedLength = mask.replace(
-            regex = "[^${wildCardChar}]".toRegex(),
-            replacement = ""
-        ).length
-
-        val originalText = text.text.take(maskTrimmedLength)
-        var maskedText = ""
-        var specialCharCount = 0
-
-        if (originalText.isNotEmpty())
-            kotlin.run {
-                mask.forEachIndexed() { index, maskChar ->
-                    try {
-                        if (maskChar != wildCardChar) {
-                            specialCharCount += 1
-                            maskedText += maskChar
-                            return@forEachIndexed
-                        }
-
-                        maskedText += originalText[index - specialCharCount]
-                    } catch (ex: StringIndexOutOfBoundsException) {
-                        return@run
-                    }
-                }
-            }
-
-        val offsetTranslator = object : OffsetMapping {
-            private fun getSpecialCharPositions(): List<Int> {
-                val specialCharPositions = mutableListOf<Int>()
-                mask.forEachIndexed { index, char ->
-                    if (char != wildCardChar) specialCharPositions.add(index)
-                }
-
-                return specialCharPositions
-            }
-
-            override fun originalToTransformed(offset: Int): Int {
-                if (
-                    originalText.isEmpty() ||
-                    getSpecialCharPositions().isEmpty()
-                ) return offset
-
-                getSpecialCharPositions().forEachIndexed { index, position ->
-                    val transformedOffset = offset + index
-                    if (transformedOffset < position) {
-                        return transformedOffset
-                    }
-                }
-
-                val transformedOffset = offset + getSpecialCharPositions().size
-
-                return if (transformedOffset <= mask.length) transformedOffset
-                else mask.length
-            }
-
-            override fun transformedToOriginal(offset: Int): Int {
-                if (
-                    originalText.isEmpty() ||
-                    getSpecialCharPositions().isEmpty()
-                ) return offset
-
-                getSpecialCharPositions().forEachIndexed { index, position ->
-                    val originalOffset = offset - index
-                    if (originalOffset < position) {
-                        return originalOffset
-                    }
-                }
-
-                val originalOffset = offset - getSpecialCharPositions().size
-
-                return if (originalOffset <= originalText.length) originalOffset
-                else originalText.length
-            }
-        }
-
-        return TransformedText(
-            text = AnnotatedString(text = maskedText),
-            offsetMapping = offsetTranslator
-        )
     }
 }
 
