@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.dimensa.mask.components.utils.transformations.MaskDynamicTransformation
 import br.com.dimensa.mask.components.utils.transformations.MaskTransformation
 import br.com.dimensa.mask.ui.theme.MaskTheme
 
@@ -43,7 +44,7 @@ fun MainScreen() {
         CustomTextField(
             text = text,
             onValueChange = {
-                text = it.take(11)
+                text = it
             },
             modifier = Modifier.fillMaxWidth()
         )
@@ -64,7 +65,10 @@ fun CustomTextField(
         label = {
             Text(text = "Campo de texto")
         },
-        visualTransformation = MaskTransformation(mask = "(##) # ####-####"),
+        visualTransformation = MaskDynamicTransformation(
+            mask1 = "###.###.###-##",
+            mask2 = "##.###.###/####-##"
+        ),
         modifier = modifier,
     )
 }
