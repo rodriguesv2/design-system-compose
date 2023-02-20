@@ -70,6 +70,8 @@ fun CustomTextField(
             mask2 = "##.###.###/####-##"
         ),
         modifier = modifier,
+        isError = true,
+        
     )
 }
 
